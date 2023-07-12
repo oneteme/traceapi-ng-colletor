@@ -1,0 +1,40 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "apiInterceptor": {
+      "projectType": "library",
+      "root": "projects/api-interceptor",
+      "sourceRoot": "projects/api-interceptor/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "project": "projects/api-interceptor/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/api-interceptor/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/api-interceptor/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "tsConfig": "projects/api-interceptor/tsconfig.spec.json",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
