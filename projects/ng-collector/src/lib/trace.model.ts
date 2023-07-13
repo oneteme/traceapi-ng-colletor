@@ -3,8 +3,8 @@ export interface MainRequest {
     id: string;
     name: string;
     user: string;
-    start: Date;
-    end?: Date;
+    start: number;
+    end?: number;
     launchMode: string;
     location: string;
     application: ApplicationInfo
@@ -34,8 +34,8 @@ export interface OutcomingRequest {
     status: number;
     inDataSize: number;
     ouDataSize: number;
-    start: Date;
-    end: Date;
+    start: number;
+    end: number;
     exception?: ExceptionInfo
 }
 

@@ -1,8 +1,9 @@
 import { Inject, Injectable } from "@angular/core";
-import { NavigationEnd, Router } from "@angular/router";
+import { NavigationEnd, NavigationStart, Router } from "@angular/router";
 import { v4 as uuidv4 } from 'uuid';
 import { ApplicationInfo, MainRequest } from "./trace.model";
 import { ApplicationConf } from "./ng-collector.module";
+import { dateNow } from "./Util";
 
 
 @Injectable({ providedIn: 'root' })
@@ -12,7 +13,7 @@ export class RouteTracerService {
 
     currentSession!: MainRequest;
     applicationInfo !: ApplicationInfo;
-    user!: string;
+    user : string;
     constructor(private router: Router,
                 @Inject('config') private config:ApplicationConf,
                 @Inject('url') private  url:string ) {
@@ -26,23 +27,28 @@ export class RouteTracerService {
             os: detectOs(),
             re: detectBrowser()
         }
-//        this.user = this.config.user() || "";
+       this.user = (typeof this.config.user === "function")? this.config.user(): this.config.user || '';
     }
 
     initialize() {
+        let start:number;
         this.router.events.subscribe(event => {
 
-            if (event instanceof NavigationEnd) {
-                if (this.currentSession) {
-                    this.currentSession.end = new Date(Date.now());
-                    this.addMainRequests(this.currentSession);
-                }
+            if (event instanceof NavigationStart){
+                start= dateNow();
+            }
 
+            if (event instanceof NavigationEnd) { 
+                if (this.currentSession) {
+                    this.currentSession.end = dateNow();
+                    this.addMainRequests(this.currentSession);
+
+                }
                 this.currentSession = {
                     id: uuidv4(),
                     name: document.title,
                     user: "",
-                    start: new Date(Date.now()),
+                    start: start,
                     end: undefined,
                     launchMode: "WEBAPP",
                     location: event.url,

@@ -1,24 +1,24 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpInterceptor, HttpEvent, HttpHandler, HttpRequest } from '@angular/common/http';
+import { HttpInterceptor, HttpEvent, HttpHandler, HttpRequest, HttpResponse } from '@angular/common/http';
 import { tap, finalize } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid';
 import { RouteTracerService } from './route-tracer.service';
 import { ExceptionInfo, OutcomingRequest } from './trace.model';
+import { dateNow } from './Util';
 @Injectable({ providedIn: 'root' })
 export class HttpInterceptorService implements HttpInterceptor {
 
     constructor(private routerTracerService: RouteTracerService) {}
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-
-        const start = new Date(Date.now())
+        const start = dateNow();
         const authScheme = this.extractAuthScheme(req.headers)
         let status: number, responseBody: any = '', exception: ExceptionInfo;
 
         return next.handle(req).pipe(tap(
             (event: any) => {
-                if (event.type == 4) {
+                if (event instanceof HttpResponse ) {
                     status = +event.status;
                     responseBody = event.body
                 }
@@ -47,7 +47,7 @@ export class HttpInterceptorService implements HttpInterceptor {
                 inDataSize: JSON.stringify(req.body).length,
                 ouDataSize: JSON.stringify(responseBody).length,
                 start: start,
-                end: new Date(Date.now()),
+                end: dateNow(),
                 exception: exception
             }
             this.routerTracerService.getCurrentSession().requests.push(request)
