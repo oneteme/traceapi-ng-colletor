@@ -3,11 +3,10 @@ export interface MainRequest {
     id: string;
     name: string;
     user: string;
-    start: Date;
-    end?: Date;
+    start: number;
+    end?: number;
     launchMode: string;
     location: string;
-    threadName: string;
     application: ApplicationInfo
     exception?: ExceptionInfo
     requests: OutcomingRequest[]
@@ -20,11 +19,6 @@ export interface ApplicationInfo {
     env: string;
     os?: string;
     re?: string;
-}
-
-export interface ExceptionInfo {
-    classname: string;
-    message: string;
 }
 
 export interface OutcomingRequest {
@@ -40,9 +34,12 @@ export interface OutcomingRequest {
     status: number;
     inDataSize: number;
     ouDataSize: number;
-    start: Date;
-    end: Date;
-    threadName: string;
+    start: number;
+    end: number;
     exception?: ExceptionInfo
 }
 
+export interface ExceptionInfo {
+    classname: string;
+    message: string;
+}
