@@ -3,23 +3,23 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "apiInterceptor": {
+    "ngCollector": {
       "projectType": "library",
-      "root": "projects/api-interceptor",
-      "sourceRoot": "projects/api-interceptor/src",
+      "root": "projects/ng-collector",
+      "sourceRoot": "projects/ng-collector/src",
       "prefix": "lib",
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "project": "projects/api-interceptor/ng-package.json"
+            "project": "projects/ng-collector/ng-package.json"
           },
           "configurations": {
             "production": {
-              "tsConfig": "projects/api-interceptor/tsconfig.lib.prod.json"
+              "tsConfig": "projects/ng-collector/tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "projects/api-interceptor/tsconfig.lib.json"
+              "tsConfig": "projects/ng-collector/tsconfig.lib.json"
             }
           },
           "defaultConfiguration": "production"
@@ -27,7 +27,7 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "tsConfig": "projects/api-interceptor/tsconfig.spec.json",
+            "tsConfig": "projects/ng-collector/tsconfig.spec.json",
             "polyfills": [
               "zone.js",
               "zone.js/testing"

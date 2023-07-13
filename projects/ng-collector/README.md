@@ -1,4 +1,4 @@
-# ApiInterceptor
+# NgCollector
 
 This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.1.0.
 
@@ -13,7 +13,7 @@ Run `ng build apiInterceptor` to build the project. The build artifacts will be 
 
 ## Publishing
 
-After building your library with `ng build apiInterceptor`, go to the dist folder `cd dist/api-interceptor` and run `npm publish`.
+After building your library with `ng build apiInterceptor`, go to the dist folder `cd dist/ng-collector` and run `npm publish`.
 
 ## Running unit tests
 

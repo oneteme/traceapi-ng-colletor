@@ -1,21 +1,27 @@
-import { Injectable } from "@angular/core";
+import { Inject, Injectable } from "@angular/core";
 import { NavigationEnd, Router } from "@angular/router";
 import { v4 as uuidv4 } from 'uuid';
 import { ApplicationInfo, MainRequest } from "./traceApp.model";
+import { ApplicationConf } from "./ng-collector.module";
+
 
 @Injectable({ providedIn: 'root' })
 export class RouteTracerService {
 
-    traceServerMain = "http://localhost:9006/trace/main/request"
+    traceServerMain:string;
 
     currentSession!: MainRequest;
     applicationInfo !: ApplicationInfo;
 
-    constructor(private router: Router) {
+    constructor(private router: Router,
+                @Inject('config') private config:ApplicationConf,
+                @Inject('url') private  url:string ) {
+
+        this.traceServerMain = this.url;
         this.applicationInfo = {
-            name: "",
+            name:  (typeof this.config.name === "function")? this.config.name(): this.config.name || '',
             address: "",
-            version: "",
+            version: (typeof this.config.version === "function")? this.config.version(): this.config.version || '',
             env: "",
             os: detectOs(),
             re: detectBrowser()
@@ -28,7 +34,7 @@ export class RouteTracerService {
 
             if (event instanceof NavigationEnd) {
                 console.log("navigation")
-                if (this.currentSession) { // change this 
+                if (this.currentSession) { // change this
                     this.currentSession.end = new Date(Date.now());
                     this.addMainRequests(this.currentSession);
                 }

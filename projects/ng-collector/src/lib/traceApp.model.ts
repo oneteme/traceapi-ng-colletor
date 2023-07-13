@@ -45,3 +45,4 @@ export interface OutcomingRequest {
     threadName: string;
     exception?: ExceptionInfo
 }
+
