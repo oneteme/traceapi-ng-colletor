@@ -13,24 +13,17 @@ export class HttpInterceptorService implements HttpInterceptor {
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
-        /*const authReq = req.clone({
-            setHeaders: {
-                Authorization: "Bearer 45O3JHMO3H45O3IH453OH45OI3H45"
-            }
-        });*/
-
-
         const start = new Date(Date.now())
         const authScheme = this.extractAuthScheme(req.headers)
         var status: number, responseBody: any, exception: ExceptionInfo;
 
         return next.handle(req).pipe(tap(
-            (event: any) => { 
+            (event: any) => {
                 if (event.type == 4) {
                     status = +event.status;
                     responseBody = event.body
                 }
-            }, 
+            },
             error => {
                 status = +error.status;
                 responseBody = ""
@@ -39,7 +32,7 @@ export class HttpInterceptorService implements HttpInterceptor {
                     message: error.error.message
                 }
             },
-        ), finalize(() => { 
+        ), finalize(() => {
 
             const url = this.getUrlInfo(req);
             var request: OutcomingRequest = {

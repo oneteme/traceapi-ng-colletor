@@ -9,17 +9,17 @@ import { CommonModule } from '@angular/common';
 
 @NgModule({
 })
-export class ApiInterceptorModule { 
+export class NgCollectorModule { 
 
-  static forRoot(configuration:any) :ModuleWithProviders<ApiInterceptorModule>{
-    console.log(configuration)
-      return {
-        ngModule : ApiInterceptorModule,
+  static forRoot(url:string, configuration:ApplicationConf) :ModuleWithProviders<NgCollectorModule>{
+    return {
+      ngModule : NgCollectorModule,
         providers : [
           RouteTracerService,
           { provide: APP_INITIALIZER, useFactory: initializeRoutingEvents, deps:[RouteTracerService],multi:true},
           { provide: HTTP_INTERCEPTORS, useClass: HttpInterceptorService, multi: true },
-          { provide: 'config', useValue: configuration}
+          { provide: 'config', useValue: configuration},
+          { provide: 'url', useValue: url}
         ]
       };
   }
@@ -28,4 +28,9 @@ export class ApiInterceptorModule {
 export function initializeRoutingEvents(routeTracerService: RouteTracerService) {
   return () => routeTracerService.initialize();
 }      
-
+  
+  export interface ApplicationConf {
+    name?: string | (()=> string);
+    version?:string | (()=> string);
+    user?: ()=> string;
+}
