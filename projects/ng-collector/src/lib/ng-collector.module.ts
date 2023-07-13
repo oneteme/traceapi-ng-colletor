@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 
 @NgModule({
 })
-export class NgCollectorModule { 
+export class NgCollectorModule {
 
   static forRoot(url:string, configuration:ApplicationConf) :ModuleWithProviders<NgCollectorModule>{
     return {
@@ -27,10 +27,10 @@ export class NgCollectorModule {
 
 export function initializeRoutingEvents(routeTracerService: RouteTracerService) {
   return () => routeTracerService.initialize();
-}      
-  
-  export interface ApplicationConf {
+}
+
+export interface ApplicationConf {
     name?: string | (()=> string);
     version?:string | (()=> string);
-    user?: ()=> string;
+    user?: () => string;
 }

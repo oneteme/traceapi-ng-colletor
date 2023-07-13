@@ -1,6 +1,11 @@
 {
   "name": "@oneteme/ng-collector",
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "description": "traceapi ng collector",
+  "author": {
+    "name": "Youssef DAHI",
+    "url": "https://oneteme.github.io/"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

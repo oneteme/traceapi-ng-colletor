@@ -12,7 +12,7 @@ export class RouteTracerService {
 
     currentSession!: MainRequest;
     applicationInfo !: ApplicationInfo;
-
+    user!: string;
     constructor(private router: Router,
                 @Inject('config') private config:ApplicationConf,
                 @Inject('url') private  url:string ) {
@@ -26,15 +26,14 @@ export class RouteTracerService {
             os: detectOs(),
             re: detectBrowser()
         }
-
+//        this.user = this.config.user() || "";
     }
 
     initialize() {
         this.router.events.subscribe(event => {
 
             if (event instanceof NavigationEnd) {
-                console.log("navigation")
-                if (this.currentSession) { // change this
+                if (this.currentSession) {
                     this.currentSession.end = new Date(Date.now());
                     this.addMainRequests(this.currentSession);
                 }
