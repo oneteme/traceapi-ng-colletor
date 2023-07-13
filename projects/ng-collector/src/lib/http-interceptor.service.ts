@@ -4,18 +4,17 @@ import { HttpInterceptor, HttpEvent, HttpHandler, HttpRequest } from '@angular/c
 import { tap, finalize } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid';
 import { RouteTracerService } from './route-tracer.service';
-import { ExceptionInfo, OutcomingRequest } from './traceApp.model';
+import { ExceptionInfo, OutcomingRequest } from './trace.model';
 @Injectable({ providedIn: 'root' })
 export class HttpInterceptorService implements HttpInterceptor {
 
-    constructor(private routerTracerService: RouteTracerService) {
-    }
+    constructor(private routerTracerService: RouteTracerService) {}
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
         const start = new Date(Date.now())
         const authScheme = this.extractAuthScheme(req.headers)
-        var status: number, responseBody: any, exception: ExceptionInfo;
+        let status: number, responseBody: any = '', exception: ExceptionInfo;
 
         return next.handle(req).pipe(tap(
             (event: any) => {
@@ -26,7 +25,6 @@ export class HttpInterceptorService implements HttpInterceptor {
             },
             error => {
                 status = +error.status;
-                responseBody = ""
                 exception = {
                     classname: error.error.error,
                     message: error.error.message
@@ -50,13 +48,11 @@ export class HttpInterceptorService implements HttpInterceptor {
                 ouDataSize: JSON.stringify(responseBody).length,
                 start: start,
                 end: new Date(Date.now()),
-                threadName: "",
                 exception: exception
             }
             this.routerTracerService.getCurrentSession().requests.push(request)
         }));
     }
-
 
     extractAuthScheme(headers: any) {
         if (headers.has('authorization')) {

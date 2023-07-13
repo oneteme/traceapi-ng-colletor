@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@angular/core";
 import { NavigationEnd, Router } from "@angular/router";
 import { v4 as uuidv4 } from 'uuid';
-import { ApplicationInfo, MainRequest } from "./traceApp.model";
+import { ApplicationInfo, MainRequest } from "./trace.model";
 import { ApplicationConf } from "./ng-collector.module";
 
 
@@ -46,7 +46,6 @@ export class RouteTracerService {
                     end: undefined,
                     launchMode: "WEBAPP",
                     location: event.url,
-                    threadName: "",
                     application: this.applicationInfo,
                     exception: undefined,
                     requests: []

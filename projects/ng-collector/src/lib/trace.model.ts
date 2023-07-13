@@ -7,7 +7,6 @@ export interface MainRequest {
     end?: Date;
     launchMode: string;
     location: string;
-    threadName: string;
     application: ApplicationInfo
     exception?: ExceptionInfo
     requests: OutcomingRequest[]
@@ -20,11 +19,6 @@ export interface ApplicationInfo {
     env: string;
     os?: string;
     re?: string;
-}
-
-export interface ExceptionInfo {
-    classname: string;
-    message: string;
 }
 
 export interface OutcomingRequest {
@@ -42,7 +36,10 @@ export interface OutcomingRequest {
     ouDataSize: number;
     start: Date;
     end: Date;
-    threadName: string;
     exception?: ExceptionInfo
 }
 
+export interface ExceptionInfo {
+    classname: string;
+    message: string;
+}
