@@ -1,3 +1,3 @@
 export function dateNow(){
-    return Date.now() / 1000;
+    return Date.now() / 1_000;
 }

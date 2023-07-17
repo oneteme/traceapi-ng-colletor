@@ -3,8 +3,7 @@ import { NavigationEnd, NavigationStart, Router } from "@angular/router";
 import { v4 as uuidv4 } from 'uuid';
 import { ApplicationInfo, MainRequest } from "./trace.model";
 import { ApplicationConf } from "./ng-collector.module";
-import { dateNow } from "./Util";
-
+import { dateNow } from "./util";
 
 @Injectable({ providedIn: 'root' })
 export class RouteTracerService {
@@ -13,49 +12,44 @@ export class RouteTracerService {
 
     currentSession!: MainRequest;
     applicationInfo !: ApplicationInfo;
-    user : string;
+    user?: string;
     constructor(private router: Router,
-                @Inject('config') private config:ApplicationConf,
-                @Inject('url') private  url:string ) {
+                @Inject('config') config:ApplicationConf,
+                @Inject('url') url:string ) {
 
-        this.traceServerMain = this.url;
+        this.traceServerMain = url;
         this.applicationInfo = {
-            name:  (typeof this.config.name === "function")? this.config.name(): this.config.name || '',
-            address: "",
-            version: (typeof this.config.version === "function")? this.config.version(): this.config.version || '',
-            env: "",
+            name: getOrCall(config.name),
+            address: undefined, //set on server side
+            version: getOrCall(config.version),
+            env: getOrCall(config.env),
             os: detectOs(),
             re: detectBrowser()
         }
-       this.user = (typeof this.config.user === "function")? this.config.user(): this.config.user || '';
+       this.user = getOrCall(config.user);
     }
 
     initialize() {
-        let start:number;
         this.router.events.subscribe(event => {
-
+            const now = dateNow(); // chain navigation
             if (event instanceof NavigationStart){
-                start= dateNow();
-            }
-
-            if (event instanceof NavigationEnd) { 
                 if (this.currentSession) {
-                    this.currentSession.end = dateNow();
+                    this.currentSession.end = now;
                     this.addMainRequests(this.currentSession);
-
                 }
                 this.currentSession = {
                     id: uuidv4(),
-                    name: document.title,
-                    user: "",
-                    start: start,
-                    end: undefined,
+                    user: this.user,
+                    start: now,
                     launchMode: "WEBAPP",
                     location: event.url,
                     application: this.applicationInfo,
-                    exception: undefined,
                     requests: []
                 }
+            }
+            else if (event instanceof NavigationEnd) {
+                this.currentSession.name = document.title;
+                this.currentSession.location = document.URL;
             }
         })
 
@@ -72,17 +66,14 @@ export class RouteTracerService {
         };
         fetch(this.traceServerMain, requestOptions)
             .catch(error => {
-                console.log(error)
+                console.error(error)
             })
     }
 
     getCurrentSession() {
         return this.currentSession;
     }
-
-
 }
-
 
 function detectBrowser() {
     try {
@@ -130,7 +121,10 @@ function detectOs() {
         console.error(e);
     }
     return undefined;
+}
 
+export function getOrCall(o?: string | (()=> string)) : string | undefined {
+    return typeof o === "function" ? o() : o;
 }
 
 

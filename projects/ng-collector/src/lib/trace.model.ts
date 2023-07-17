@@ -1,8 +1,8 @@
 
 export interface MainRequest {
     id: string;
-    name: string;
-    user: string;
+    name?: string;
+    user?: string; 
     start: number;
     end?: number;
     launchMode: string;
@@ -13,10 +13,10 @@ export interface MainRequest {
 }
 
 export interface ApplicationInfo {
-    name: string;
-    address: string;
-    version: string;
-    env: string;
+    name?: string;
+    address?: string;
+    version?: string;
+    env?: string;
     os?: string;
     re?: string;
 }
@@ -30,7 +30,7 @@ export interface OutcomingRequest {
     path: string;
     query: string;
     contentType: string;
-    authScheme: string;
+    authScheme?: string;
     status: number;
     inDataSize: number;
     ouDataSize: number;
