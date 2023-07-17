@@ -5,7 +5,6 @@ import { ApplicationInfo, MainRequest } from "./trace.model";
 import { ApplicationConf } from "./ng-collector.module";
 import { dateNow } from "./util";
 
-
 @Injectable({ providedIn: 'root' })
 export class RouteTracerService {
 
@@ -15,46 +14,42 @@ export class RouteTracerService {
     applicationInfo !: ApplicationInfo;
     user?: string;
     constructor(private router: Router,
-                @Inject('config') private config:ApplicationConf,
-                @Inject('url') private  url:string ) {
+                @Inject('config') config:ApplicationConf,
+                @Inject('url') url:string ) {
 
-        this.traceServerMain = this.url;
+        this.traceServerMain = url;
         this.applicationInfo = {
-            name: getOrCall(this.config.name),
+            name: getOrCall(config.name),
             address: undefined, //set on server side
-            version: getOrCall(this.config.version),
-            env: getOrCall(this.config.env),
+            version: getOrCall(config.version),
+            env: getOrCall(config.env),
             os: detectOs(),
             re: detectBrowser()
         }
-       this.user = getOrCall(this.config.user);
+       this.user = getOrCall(config.user);
     }
 
     initialize() {
         this.router.events.subscribe(event => {
+            const now = dateNow(); // chain navigation
             if (event instanceof NavigationStart){
-
                 if (this.currentSession) {
-                    this.currentSession.end = dateNow();
+                    this.currentSession.end = now;
                     this.addMainRequests(this.currentSession);
                 }
                 this.currentSession = {
                     id: uuidv4(),
                     user: this.user,
-                    start: dateNow(),
+                    start: now,
                     launchMode: "WEBAPP",
                     location: event.url,
                     application: this.applicationInfo,
                     requests: []
                 }
             }
-
-            if (event instanceof NavigationEnd) {
-
-                this.currentSession.end = dateNow();
+            else if (event instanceof NavigationEnd) {
                 this.currentSession.name = document.title;
                 this.currentSession.location = document.URL;
-
             }
         })
 
