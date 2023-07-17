@@ -3,7 +3,7 @@ import { NavigationEnd, NavigationStart, Router } from "@angular/router";
 import { v4 as uuidv4 } from 'uuid';
 import { ApplicationInfo, MainRequest } from "./trace.model";
 import { ApplicationConf } from "./ng-collector.module";
-import { dateNow } from "./Util";
+import { dateNow } from "./util";
 
 
 @Injectable({ providedIn: 'root' })
@@ -13,21 +13,21 @@ export class RouteTracerService {
 
     currentSession!: MainRequest;
     applicationInfo !: ApplicationInfo;
-    user : string;
+    user?: string;
     constructor(private router: Router,
                 @Inject('config') private config:ApplicationConf,
                 @Inject('url') private  url:string ) {
 
         this.traceServerMain = this.url;
         this.applicationInfo = {
-            name:  (typeof this.config.name === "function")? this.config.name(): this.config.name || '',
-            address: "",
-            version: (typeof this.config.version === "function")? this.config.version(): this.config.version || '',
-            env: "",
+            name: getOrCall(this.config.name),
+            address: undefined, //TODO
+            version: getOrCall(this.config.version),
+            env: getOrCall(this.config.env),
             os: detectOs(),
             re: detectBrowser()
         }
-       this.user = (typeof this.config.user === "function")? this.config.user(): this.config.user || '';
+       this.user = getOrCall(this.config.user);
     }
 
     initialize() {
@@ -36,6 +36,7 @@ export class RouteTracerService {
 
             if (event instanceof NavigationStart){
                 start= dateNow();
+                //xhr
             }
 
             if (event instanceof NavigationEnd) { 
@@ -72,17 +73,14 @@ export class RouteTracerService {
         };
         fetch(this.traceServerMain, requestOptions)
             .catch(error => {
-                console.log(error)
+                console.error(error)
             })
     }
 
     getCurrentSession() {
         return this.currentSession;
     }
-
-
 }
-
 
 function detectBrowser() {
     try {
@@ -130,8 +128,11 @@ function detectOs() {
         console.error(e);
     }
     return undefined;
-
 }
+
+export function getOrCall(o?: string | (()=> string)) : string | undefined {
+    return typeof o === "function" ? o() : o;
+}  
 
 
 

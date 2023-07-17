@@ -27,6 +27,6 @@ export function initializeRoutingEvents(routeTracerService: RouteTracerService) 
 export interface ApplicationConf {
     name?: string | (()=> string);
     version?:string | (()=> string);
+    env?:string | (()=> string);
     user?: string | (() => string);
 }
- 

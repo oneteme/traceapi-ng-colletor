@@ -5,7 +5,8 @@ import { tap, finalize } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid';
 import { RouteTracerService } from './route-tracer.service';
 import { ExceptionInfo, OutcomingRequest } from './trace.model';
-import { dateNow } from './Util';
+import { dateNow } from './util';
+
 @Injectable({ providedIn: 'root' })
 export class HttpInterceptorService implements HttpInterceptor {
 
@@ -13,7 +14,6 @@ export class HttpInterceptorService implements HttpInterceptor {
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         const start = dateNow();
-        const authScheme = this.extractAuthScheme(req.headers)
         let status: number, responseBody: any = '', exception: ExceptionInfo;
 
         return next.handle(req).pipe(tap(
@@ -32,7 +32,7 @@ export class HttpInterceptorService implements HttpInterceptor {
             },
         ), finalize(() => {
 
-            const url = this.getUrlInfo(req);
+            const url = toHref(req.url);
             var request: OutcomingRequest = {
                 id: uuidv4(),
                 method: req.method,
@@ -42,10 +42,10 @@ export class HttpInterceptorService implements HttpInterceptor {
                 path: url.pathname,
                 query: url.search.slice(1, url.search.length),
                 contentType: req.responseType,
-                authScheme: authScheme,
+                authScheme: extractAuthScheme(req.headers),
                 status: +status,
-                inDataSize: JSON.stringify(req.body).length,
-                ouDataSize: JSON.stringify(responseBody).length,
+                inDataSize: sizeOf(responseBody), 
+                ouDataSize: sizeOf(req.body),
                 start: start,
                 end: dateNow(),
                 exception: exception
@@ -53,21 +53,20 @@ export class HttpInterceptorService implements HttpInterceptor {
             this.routerTracerService.getCurrentSession().requests.push(request)
         }));
     }
-
-    extractAuthScheme(headers: any) {
-        if (headers.has('authorization')) {
-            const authMatch = headers.get('authorization').match(/^\w+/);
-            return authMatch ? authMatch[0] : '';
-        }
-        return '';
-    }
-
-    getUrlInfo(req: HttpRequest<any>) {
-        const url = document.createElement('a');
-        url.setAttribute('href', req.url);
-        return url;
-    }
-
-
 }
 
+function toHref(url : string) : HTMLAnchorElement {
+    const href = document.createElement('a');
+    href.setAttribute('href', url);
+    return href;
+}
+
+function extractAuthScheme(headers: any) : string | undefined {
+    return headers.has('authorization') 
+        ? headers.get('authorization').match(/^(\w+) /)?.at(1)
+        : undefined;
+}
+
+function sizeOf(body: any) : number{
+    return body ? 0 : JSON.stringify(body).length
+}
