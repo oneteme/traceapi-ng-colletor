@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
 import { HttpInterceptor, HttpEvent, HttpHandler, HttpRequest, HttpResponse } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import { tap, finalize } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid';
 import { RouteTracerService } from './route-tracer.service';
@@ -31,9 +31,8 @@ export class HttpInterceptorService implements HttpInterceptor {
                 }
             },
         ), finalize(() => {
-
             const url = toHref(req.url);
-            var request: OutcomingRequest = {
+            this.routerTracerService.getCurrentSession().requests.push({
                 id: uuidv4(),
                 method: req.method,
                 protocol: url.protocol.slice(0, -1),
@@ -49,8 +48,7 @@ export class HttpInterceptorService implements HttpInterceptor {
                 start: start,
                 end: dateNow(),
                 exception: exception
-            }
-            this.routerTracerService.getCurrentSession().requests.push(request)
+            });
         }));
     }
 }
@@ -67,6 +65,6 @@ function extractAuthScheme(headers: any) : string | undefined {
         : undefined;
 }
 
-function sizeOf(body: any) : number{
-    return body ? 0 : JSON.stringify(body).length
+function sizeOf(body: any) : number {
+    return body ? JSON.stringify(body).length : 0;
 }

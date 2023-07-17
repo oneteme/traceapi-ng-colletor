@@ -21,7 +21,7 @@ export class RouteTracerService {
         this.traceServerMain = this.url;
         this.applicationInfo = {
             name: getOrCall(this.config.name),
-            address: undefined, //TODO
+            address: undefined, //set on server side
             version: getOrCall(this.config.version),
             env: getOrCall(this.config.env),
             os: detectOs(),

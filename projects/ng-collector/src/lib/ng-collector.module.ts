@@ -1,4 +1,4 @@
-import { NgModule ,APP_INITIALIZER, ModuleWithProviders} from '@angular/core';
+import { NgModule, APP_INITIALIZER, ModuleWithProviders} from '@angular/core';
 import { HTTP_INTERCEPTORS, } from '@angular/common/http';
 import { HttpInterceptorService } from './http-interceptor.service';
 import { RouteTracerService } from './route-tracer.service';
