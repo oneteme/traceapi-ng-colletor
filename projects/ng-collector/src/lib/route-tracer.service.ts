@@ -31,32 +31,30 @@ export class RouteTracerService {
     }
 
     initialize() {
-        let start:number;
         this.router.events.subscribe(event => {
-
             if (event instanceof NavigationStart){
-                start= dateNow();
-                //xhr
-            }
 
-            if (event instanceof NavigationEnd) { 
                 if (this.currentSession) {
                     this.currentSession.end = dateNow();
                     this.addMainRequests(this.currentSession);
-
                 }
                 this.currentSession = {
                     id: uuidv4(),
-                    name: document.title,
-                    user: "",
-                    start: start,
-                    end: undefined,
+                    user: this.user,
+                    start: dateNow(),
                     launchMode: "WEBAPP",
                     location: event.url,
                     application: this.applicationInfo,
-                    exception: undefined,
                     requests: []
                 }
+            }
+
+            if (event instanceof NavigationEnd) {
+
+                this.currentSession.end = dateNow();
+                this.currentSession.name = document.title;
+                this.currentSession.location = document.URL;
+
             }
         })
 
@@ -132,7 +130,7 @@ function detectOs() {
 
 export function getOrCall(o?: string | (()=> string)) : string | undefined {
     return typeof o === "function" ? o() : o;
-}  
+}
 
 
 

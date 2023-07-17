@@ -1,8 +1,8 @@
 
 export interface MainRequest {
     id: string;
-    name: string;
-    user: string;
+    name?: string;
+    user?: string; 
     start: number;
     end?: number;
     launchMode: string;
