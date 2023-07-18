@@ -30,7 +30,8 @@ export class HttpInterceptorService implements HttpInterceptor {
                     message: error.error.message
                 }
             },
-        ), finalize(() => {
+        ), 
+        finalize(() => {
             const url = toHref(req.url);
             this.routerTracerService.getCurrentSession().requests.push({
                 id: uuidv4(),
