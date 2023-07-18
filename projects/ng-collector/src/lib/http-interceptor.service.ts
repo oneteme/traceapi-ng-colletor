@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { tap, finalize } from 'rxjs/operators'
 import { v4 as uuidv4 } from 'uuid';
 import { RouteTracerService } from './route-tracer.service';
-import { ExceptionInfo, OutcomingRequest } from './trace.model';
+import { ExceptionInfo } from './trace.model';
 import { dateNow } from './util';
 
 @Injectable({ providedIn: 'root' })
