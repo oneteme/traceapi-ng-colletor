@@ -33,7 +33,7 @@ export class RouteTracerService {
     initialize() {
         this.router.events.subscribe(event => {
             if (event instanceof NavigationStart) {
-                var now = dateNow();
+                const now = dateNow();
                 if (this.currentSession) {
                     this.currentSession.end = now;
                     this.addMainRequests(this.currentSession);
