@@ -1,6 +1,6 @@
 {
   "name": "@oneteme/ng-collector",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "traceapi ng collector",
   "private": false,
   "homepage": "https://github.com/oneteme/traceapi-ng-colletor",
@@ -21,11 +21,9 @@
     "test": "ng test"
   },
   "dependencies": {
-    "@angular/animations": "~13.0.0",
     "@angular/common": "~13.0.0",
     "@angular/compiler": "~13.0.0",
     "@angular/core": "~13.0.0",
-    "@angular/forms": "~13.0.0",
     "@angular/platform-browser": "~13.0.0",
     "@angular/platform-browser-dynamic": "~13.0.0",
     "@angular/router": "~13.0.0",
