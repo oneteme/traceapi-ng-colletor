@@ -3,12 +3,12 @@
   "version": "0.0.5",
   "peerDependencies": {
     "@angular/common": "^13.0.0",
-    "@angular/core": "^13.0.0"
+    "@angular/core": "^13.0.0",
+    "@angular/router": "~13.0.0",
+    "@types/uuid": "^9.0.2"
   },
   "dependencies": {
     "tslib": "^2.3.0"
   },
-  "devDependencies": {
-    "@types/uuid": "^9.0.2"
-  }
+  "devDependencies": {}
 }
