@@ -15,33 +15,33 @@ export class RouteTracerService {
     applicationInfo !: ApplicationInfo;
     user?: string;
     constructor(private router: Router,
-        @Inject('config') private config: ApplicationConf,
-        @Inject('url') private url: string) {
+        @Inject('config') config: ApplicationConf,
+        @Inject('url') url: string) {
 
-        this.traceServerMain = this.url;
+        this.traceServerMain = url;
         this.applicationInfo = {
-            name: getOrCall(this.config.name),
-            address: undefined, //TODO
-            version: getOrCall(this.config.version),
-            env: getOrCall(this.config.env),
+            name: getOrCall(config.name),
+            address: undefined, //server side
+            version: getOrCall(config.version),
+            env: getOrCall(config.env),
             os: detectOs(),
             re: detectBrowser()
         }
-        this.user = getOrCall(this.config.user);
+        this.user = getOrCall(config.user);
     }
 
     initialize() {
         this.router.events.subscribe(event => {
             if (event instanceof NavigationStart) {
-
+                var now = dateNow();
                 if (this.currentSession) {
-                    this.currentSession.end = dateNow();
+                    this.currentSession.end = now;
                     this.addMainRequests(this.currentSession);
                 }
                 this.currentSession = {
                     id: uuidv4(),
                     user: this.user,
-                    start: dateNow(),
+                    start: now,
                     launchMode: "WEBAPP",
                     location: event.url,
                     application: this.applicationInfo,
@@ -50,8 +50,6 @@ export class RouteTracerService {
             }
 
             if (event instanceof NavigationEnd) {
-
-                this.currentSession.end = dateNow();
                 this.currentSession.name = document.title;
                 this.currentSession.location = document.URL;
 
