@@ -15,7 +15,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: '@oneteme'
       - run: npm install
-      - run: npm build
+      - run: npm run build
       - run: npm publish ./dist/ng-collector --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
