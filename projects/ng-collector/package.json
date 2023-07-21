@@ -10,5 +10,7 @@
   "dependencies": {
     "tslib": "^2.3.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@types/uuid": "^9.0.2"
+  }
 }
