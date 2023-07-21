@@ -5,7 +5,6 @@ import { ApplicationInfo, MainRequest } from "./trace.model";
 import { ApplicationConf } from "./ng-collector.module";
 import { dateNow } from "./util";
 
-
 @Injectable({ providedIn: 'root' })
 export class RouteTracerService {
 
