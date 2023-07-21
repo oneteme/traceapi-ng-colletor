@@ -1,6 +1,13 @@
 {
   "name": "@oneteme/ng-collector",
   "version": "0.0.6",
+  "description": "traceapi ng collector",
+  "homepage": "https://github.com/oneteme/traceapi-ng-colletor",
+  "bugs": "https://github.com/oneteme/traceapi-ng-colletor/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oneteme/traceapi-ng-colletor.git"
+  },
   "peerDependencies": {
     "@angular/common": "^13.0.0",
     "@angular/core": "^13.0.0",
