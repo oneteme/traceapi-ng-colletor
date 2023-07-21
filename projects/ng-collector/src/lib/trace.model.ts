@@ -2,7 +2,7 @@
 export interface MainRequest {
     id: string;
     name?: string;
-    user?: string; 
+    user?: string;
     start: number;
     end?: number;
     launchMode: string;
