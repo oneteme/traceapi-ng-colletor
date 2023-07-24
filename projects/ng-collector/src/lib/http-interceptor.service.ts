@@ -16,7 +16,6 @@ export class HttpInterceptorService implements HttpInterceptor {
         const start = dateNow();
         let status: number, responseBody: any = '', exception: ExceptionInfo;
         const id = uuidv4();
-
         req = req.clone({
             setHeaders: { 'x-tracert': id }
         });
@@ -36,12 +35,13 @@ export class HttpInterceptorService implements HttpInterceptor {
                 }
             },
         ), finalize(() => {
-            const url = toHref(req.url);
+
+            const url = toHref(req.urlWithParams);
             this.routerTracerService.getCurrentSession().requests.push({
                 id: id,
                 method: req.method,
                 protocol: url.protocol.slice(0, -1),
-                host: url.host.slice(0, url.host.length - 5),
+                host: exctractHost(url.host),
                 port: +url.port,
                 path: url.pathname,
                 query: url.search.slice(1, url.search.length),
@@ -62,6 +62,11 @@ function toHref(url: string): HTMLAnchorElement {
     const href = document.createElement('a');
     href.setAttribute('href', url);
     return href;
+}
+
+function exctractHost(path: string) {
+    const portregex = /:\d+/;
+    return path.replace(portregex, '')
 }
 
 function extractAuthScheme(headers: any): string | undefined {
