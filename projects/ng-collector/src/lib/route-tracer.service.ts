@@ -1,6 +1,5 @@
-import { Inject, Injectable } from "@angular/core";
+import { Inject, Injectable,HostListener } from "@angular/core";
 import { NavigationEnd, NavigationStart, Router } from "@angular/router";
-import { v4 as uuidv4 } from 'uuid';
 import { ApplicationInfo, MainRequest } from "./trace.model";
 import { ApplicationConf } from "./ng-collector.module";
 import { dateNow } from "./util";
@@ -27,6 +26,9 @@ export class RouteTracerService {
             re: detectBrowser()
         }
         this.user = getOrCall(config.user);
+        window.onbeforeunload = function () {
+            return "Do you really want to close?";
+        };
     }
 
     initialize() {
@@ -34,11 +36,10 @@ export class RouteTracerService {
             if (event instanceof NavigationStart) {
                 const now = dateNow();
                 if (this.currentSession) {
-                    this.currentSession.end = now;
-                    this.addMainRequests(this.currentSession);
+                    this.endSession();
                 }
                 this.currentSession = {
-                    id: uuidv4(),
+                    '@type': "main",
                     user: this.user,
                     start: now,
                     launchMode: "WEBAPP",
@@ -58,16 +59,17 @@ export class RouteTracerService {
     }
 
     addMainRequests(currentSession: any) {
+        const sentSessiont = [currentSession]
         const requestOptions = {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            body: JSON.stringify(currentSession)
+            body: JSON.stringify(sentSessiont)
         };
         fetch(this.traceServerMain, requestOptions)
-            .catch(error => {
+            .catch(error => { 
                 console.error(error)
             })
     }
@@ -75,6 +77,16 @@ export class RouteTracerService {
     getCurrentSession() {
         return this.currentSession;
     }
+
+    endSession(){
+        this.currentSession.end = dateNow();
+        this.addMainRequests(this.currentSession);
+    }
+
+    /*@HostListener('window:beforeunload')
+    async ngOnDestroy() {
+        this.endSession();
+    }*/
 }
 
 function detectBrowser() {

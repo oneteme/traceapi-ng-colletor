@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpInterceptor, HttpEvent, HttpHandler, HttpRequest, HttpResponse } from '@angular/common/http';
 import { tap, finalize } from 'rxjs/operators'
-import { v4 as uuidv4 } from 'uuid';
 import { RouteTracerService } from './route-tracer.service';
 import { ExceptionInfo } from './trace.model';
 import { dateNow } from './util';
@@ -15,19 +14,17 @@ export class HttpInterceptorService implements HttpInterceptor {
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         const start = dateNow();
         let status: number, responseBody: any = '', exception: ExceptionInfo;
-        const id = uuidv4();
-        req = req.clone({
-            setHeaders: { 'x-tracert': id }
-        });
-
+        let id: string| undefined;
         return next.handle(req).pipe(tap(
             (event: any) => {
                 if (event instanceof HttpResponse) {
                     status = +event.status;
                     responseBody = event.body
+                    id = setReqid(event.headers);
                 }
             },
             error => {
+                id = setReqid(error.headers);
                 status = +error.status;
                 exception = {
                     classname: error.error.error,
@@ -72,6 +69,12 @@ function exctractHost(path: string) {
 function extractAuthScheme(headers: any): string | undefined {
     return headers.has('authorization')
         ? headers.get('authorization').match(/^(\w+) /)?.at(1)
+        : undefined;
+}
+
+function setReqid(headers:any):string | undefined {
+    return headers.has('x-tracert')
+        ? headers.get('x-tracert')
         : undefined;
 }
 
