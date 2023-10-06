@@ -1,6 +1,6 @@
 
 export interface MainRequest {
-    id: string;
+    '@type'?: string;
     name?: string;
     user?: string;
     start: number;
@@ -22,7 +22,7 @@ export interface ApplicationInfo {
 }
 
 export interface OutcomingRequest {
-    id: string;
+    id?: string;
     method: string;
     protocol: string;
     host: string;
