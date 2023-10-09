@@ -20,11 +20,12 @@ export class HttpInterceptorService implements HttpInterceptor {
                 if (event instanceof HttpResponse) {
                     status = +event.status;
                     responseBody = event.body
-                    id = setReqid(event.headers);
+                    id = getReqid(event.headers);
                 }
             },
             error => {
-                id = setReqid(error.headers);
+                console.log(error)
+                id = getReqid(error.headers);
                 status = +error.status;
                 exception = {
                     classname: error.error.error,
@@ -72,7 +73,7 @@ function extractAuthScheme(headers: any): string | undefined {
         : undefined;
 }
 
-function setReqid(headers:any):string | undefined {
+function getReqid(headers:any):string | undefined {
     return headers.has('x-tracert')
         ? headers.get('x-tracert')
         : undefined;

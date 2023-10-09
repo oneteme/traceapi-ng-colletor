@@ -1,6 +1,6 @@
 import { Inject, Injectable,HostListener } from "@angular/core";
 import { NavigationEnd, NavigationStart, Router } from "@angular/router";
-import { ApplicationInfo, MainRequest } from "./trace.model";
+import { ApplicationInfo, MainSession } from "./trace.model";
 import { ApplicationConf } from "./ng-collector.module";
 import { dateNow } from "./util";
 
@@ -9,7 +9,7 @@ export class RouteTracerService {
 
     traceServerMain: string;
 
-    currentSession!: MainRequest;
+    currentSession!: MainSession;
     applicationInfo !: ApplicationInfo;
     user?: string;
     constructor(private router: Router,
@@ -26,9 +26,6 @@ export class RouteTracerService {
             re: detectBrowser()
         }
         this.user = getOrCall(config.user);
-        window.onbeforeunload = function () {
-            return "Do you really want to close?";
-        };
     }
 
     initialize() {
@@ -58,18 +55,17 @@ export class RouteTracerService {
 
     }
 
-    addMainRequests(currentSession: any) {
-        const sentSessiont = [currentSession]
+    sendSessions(currentSession: any) {
         const requestOptions = {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             },
-            body: JSON.stringify(sentSessiont)
+            body: JSON.stringify([currentSession])
         };
         fetch(this.traceServerMain, requestOptions)
-            .catch(error => { 
+            .catch(error => {
                 console.error(error)
             })
     }
@@ -80,13 +76,9 @@ export class RouteTracerService {
 
     endSession(){
         this.currentSession.end = dateNow();
-        this.addMainRequests(this.currentSession);
+        this.sendSessions(this.currentSession);
     }
 
-    /*@HostListener('window:beforeunload')
-    async ngOnDestroy() {
-        this.endSession();
-    }*/
 }
 
 function detectBrowser() {
