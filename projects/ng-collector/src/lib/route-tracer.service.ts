@@ -1,4 +1,4 @@
-import { Inject, Injectable,HostListener } from "@angular/core";
+import { Inject, Injectable} from "@angular/core";
 import { NavigationEnd, NavigationStart, Router } from "@angular/router";
 import { ApplicationInfo, MainSession } from "./trace.model";
 import { ApplicationConf } from "./ng-collector.module";
