@@ -1,6 +1,6 @@
 
-export interface MainRequest {
-    id: string;
+export interface MainSession {
+    '@type'?: string;
     name?: string;
     user?: string;
     start: number;
@@ -9,7 +9,7 @@ export interface MainRequest {
     location: string;
     application: ApplicationInfo
     exception?: ExceptionInfo
-    requests: OutcomingRequest[]
+    requests: ApiRequest[]
 }
 
 export interface ApplicationInfo {
@@ -21,8 +21,8 @@ export interface ApplicationInfo {
     re?: string;
 }
 
-export interface OutcomingRequest {
-    id: string;
+export interface ApiRequest {
+    id?: string;
     method: string;
     protocol: string;
     host: string;
