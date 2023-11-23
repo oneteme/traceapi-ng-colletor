@@ -1,6 +1,6 @@
 {
   "name": "@oneteme/ng-collector",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "traceapi ng collector",
   "homepage": "https://github.com/oneteme/traceapi-ng-colletor",
   "bugs": "https://github.com/oneteme/traceapi-ng-colletor/issues",
