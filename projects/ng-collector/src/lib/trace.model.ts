@@ -1,4 +1,4 @@
-
+type InstantType = "SERVER"  | "CLIENT";
 export interface MainSession {
     '@type'?: string;
     name?: string;
@@ -7,18 +7,21 @@ export interface MainSession {
     end?: number;
     launchMode: string;
     location: string;
-    application: ApplicationInfo
     exception?: ExceptionInfo
     requests: ApiRequest[]
 }
 
-export interface ApplicationInfo {
+export interface InstanceEnvironment {
     name?: string;
     address?: string;
     version?: string;
     env?: string;
     os?: string;
     re?: string;
+    user?: string;
+    type?: InstantType;
+    instant?:number;   
+    collector?:string;
 }
 
 export interface ApiRequest {
@@ -43,3 +46,4 @@ export interface ExceptionInfo {
     classname: string;
     message: string;
 }
+

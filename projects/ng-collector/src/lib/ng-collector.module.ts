@@ -2,13 +2,20 @@ import { NgModule, APP_INITIALIZER, ModuleWithProviders } from '@angular/core';
 import { HTTP_INTERCEPTORS, } from '@angular/common/http';
 import { HttpInterceptorService } from './http-interceptor.service';
 import { RouteTracerService } from './route-tracer.service';
+import { getNumberOrCall, logTraceapi, requirePostitiveValue } from './util';
 
 @NgModule({})
 export class NgCollectorModule {
 
-  static forRoot(url: string, configuration: ApplicationConf): ModuleWithProviders<NgCollectorModule> {
+  static forRoot(host: string, configuration: ApplicationConf): ModuleWithProviders<NgCollectorModule> {
+    if (configuration?.enabled && host && configuration?.sessionApi && configuration?.instanceApi ) {
 
-    if (configuration?.enabled && url) {
+       if(!requirePostitiveValue(getNumberOrCall(configuration?.delay),"delay") ||
+          !requirePostitiveValue(getNumberOrCall(configuration?.bufferMaxSize),"bufferMaxSize") ){
+            logTraceapi('warn','invalid Configuration, Ng-collector is disabled');
+          return {ngModule: NgCollectorModule}
+       }
+ 
       return {
         ngModule: NgCollectorModule,
         providers: [
@@ -16,7 +23,7 @@ export class NgCollectorModule {
           { provide: APP_INITIALIZER, useFactory: initializeRoutingEvents, deps: [RouteTracerService], multi: true },
           { provide: HTTP_INTERCEPTORS, useClass: HttpInterceptorService, multi: true },
           { provide: 'config', useValue: configuration },
-          { provide: 'url', useValue: url }
+          { provide: 'host', useValue: host }
         ]
       };
     }
@@ -36,5 +43,9 @@ export interface ApplicationConf {
   version?: string | (() => string);
   env?: string | (() => string);
   user?: string | (() => string);
+  bufferMaxSize?: number | (() => number);
+  delay?: number| (() => number);
+  instanceApi?: string | (() => string);
+  sessionApi?: string | (() => string);
   enabled?: boolean;
 }
