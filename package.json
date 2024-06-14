@@ -4,7 +4,7 @@
   "description": "traceapi ng collector",
   "private": false,
   "homepage": "https://github.com/oneteme/traceapi-ng-colletor",
-  "bugs": "https://github.com/oneteme/traceapi-ng-colletor/issues",
+  "bugs": "https://github.com/oneteme/traceapi-ng-colletor/issues/",
   "author": {
     "name": "Youssef DAHI",
     "url": "https://oneteme.github.io/"
