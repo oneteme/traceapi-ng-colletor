@@ -1,34 +1,74 @@
-import { Inject, Injectable} from "@angular/core";
+import {  Inject, Injectable, OnDestroy} from "@angular/core";
 import { NavigationEnd, NavigationStart, Router } from "@angular/router";
-import { ApplicationInfo, MainSession } from "./trace.model";
-import { ApplicationConf } from "./ng-collector.module";
-import { dateNow } from "./util";
+import { InstanceEnvironment, MainSession } from "./trace.model";
+import { ApplicationConf} from "./ng-collector.module";
+import { dateNow, detectBrowser, detectOs, getNumberOrCall, getStringOrCall, logTraceapi } from "./util";
+import { BehaviorSubject, from, interval, Observable, Subscription, tap } from "rxjs";
 
-@Injectable({ providedIn: 'root' })
-export class RouteTracerService {
 
-    traceServerMain: string;
+const SLASH = '/';
+@Injectable({ providedIn: 'root' }) 
+export class RouteTracerService  implements OnDestroy{
 
-    currentSession!: MainSession;
-    applicationInfo !: ApplicationInfo;
+    logServerMain: string; 
+    logInstanceEnv: string;
+    sessionQueue: MainSession[]= [];
+    currentSession!: MainSession; 
+    instanceEnvironment !: InstanceEnvironment; 
+    scheduledSessionSender: Subscription;
     user?: string;
+    maxBufferSize: number
+    delay:number
+    sessionSendAttempts: number = 0 
+    InstanceEnvSendAttempts: number = 0;
+    trySendInstanceEnv:any;
+    instance!: BehaviorSubject<string>;
+    
     constructor(private router: Router,
         @Inject('config') config: ApplicationConf,
-        @Inject('url') url: string) {
+        @Inject('host') host: string) {
 
-        this.traceServerMain = url;
-        this.applicationInfo = {
-            name: getOrCall(config.name),
+        
+        this.logServerMain = this.sessionApiURL(host,getStringOrCall(config.sessionApi)!);
+        this.logInstanceEnv = this.instanceApiURL(host,getStringOrCall(config.instanceApi)!);
+        this.maxBufferSize =  getNumberOrCall(config.bufferMaxSize) || 3;
+        this.delay = getNumberOrCall(config.delay) || 5000;
+        this.instanceEnvironment = {
+            name: getStringOrCall(config.name),
+            version: getStringOrCall(config.version),
             address: undefined, //server side
-            version: getOrCall(config.version),
-            env: getOrCall(config.env),
+            env: getStringOrCall(config.env),
             os: detectOs(),
-            re: detectBrowser()
+            re: detectBrowser(),
+            user: undefined, // cannot get user
+            type: "CLIENT",
+            instant: dateNow(),
+            collector: "ng-collector-0.0.10"
         }
-        this.user = getOrCall(config.user);
+        this.user = getStringOrCall(config.user);
+
+        this.scheduledSessionSender = interval(this.delay)
+        .pipe(tap(()=> {this.sendSessions()}))
+        .subscribe();
+    }
+
+    private beforeUnloadHandler = (event: BeforeUnloadEvent): void => {
+        this.endSession(); 
+        this.scheduledSessionSender.unsubscribe();
+        this.sendSessions();
+    }
+
+    ngOnDestroy(): void { 
+        window.removeEventListener('beforeunload',this.beforeUnloadHandler); 
+        if(this.scheduledSessionSender){
+            this.scheduledSessionSender.unsubscribe();
+        }
+        
     }
 
     initialize() {
+        logTraceapi('log','initialize');
+        window.addEventListener('beforeunload', this.beforeUnloadHandler);
         this.router.events.subscribe(event => {
             if (event instanceof NavigationStart) {
                 const now = dateNow();
@@ -41,98 +81,114 @@ export class RouteTracerService {
                     start: now,
                     launchMode: "WEBAPP",
                     location: event.url,
-                    application: this.applicationInfo,
                     requests: []
                 }
             }
-
             if (event instanceof NavigationEnd) {
                 this.currentSession.name = document.title;
-                this.currentSession.location = document.URL;
+                this.currentSession.location = document.URL; 
 
             }
         })
 
     }
 
-    sendSessions(currentSession: any) {
-        const requestOptions = {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            body: JSON.stringify([currentSession])
-        };
-        fetch(this.traceServerMain, requestOptions)
-            .catch(error => {
-                console.error(error)
+    sendSessions() {
+        if(this.sessionQueue.length> 0){
+            this.getInsertedInstanceId().subscribe((id:string|null)=>{
+                if(id) {
+                    let sessions: MainSession[] = [...this.sessionQueue];
+                    this.sessionQueue.splice(0,sessions.length); // add rest of sessions 
+                    logTraceapi('log',`sending sessions, attempts:${++this.sessionSendAttempts}, queue size : ${sessions.length}`)
+                
+                    const requestOptions = {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Access-Control-Allow-Origin': '*'
+                        },
+                        body: JSON.stringify(sessions)
+                    };
+                   
+                    fetch(this.logServerMain, requestOptions)
+                    .then(data=> {
+                        if(data.ok){
+                            logTraceapi('log','sessions sent successfully, queue size reset, new size is: '+this.sessionQueue.length)
+                            this.sessionSendAttempts= 0;
+                        }else{
+                            logTraceapi('warn',`Error while attempting to send sessions, attempts: ${this.sessionSendAttempts}`)// 
+                            this.revertQueueSize(sessions);
+                        }
+                    })
+                    .catch(error => {
+                        logTraceapi('warn',`Error while attempting to send sessions, attempts: ${this.sessionSendAttempts}`)// 
+                        logTraceapi('warn',error)
+                        this.revertQueueSize(sessions);
+                    })
+
+                }else { 
+                    logTraceapi('warn',`Error while attempting to send Environement instance, attempts ${this.sessionSendAttempts}`);
+                }
             })
+        }
     }
 
+    revertQueueSize(sessions: MainSession[]){
+        this.sessionQueue.unshift(...sessions);
+        if(this.sessionQueue.length > this.maxBufferSize ){
+            let diff = this.sessionQueue.length - this.maxBufferSize;
+            this.sessionQueue = this.sessionQueue.slice(0,this.maxBufferSize);
+            logTraceapi('log','Buffer size exeeded the max size,last sessions have been removed from buffer, (number of sessions removed):'+diff)
+        }
+    }
+  
     getCurrentSession() {
         return this.currentSession;
     }
 
     endSession(){
         this.currentSession.end = dateNow();
-        this.sendSessions(this.currentSession);
+        this.sessionQueue.push(this.currentSession);
+        logTraceapi('log',"added element to session queue, new size is: "+ this.sessionQueue.length);
     }
 
-}
-
-function detectBrowser() {
-    try {
-        const agent = window.navigator.userAgent.toLowerCase()
-        switch (true) {
-            case agent.indexOf('edge') > -1:
-                return 'edge';
-            case agent.indexOf('opr') > -1:
-                return 'opera';
-            case agent.indexOf('chrome') > -1:
-                return 'chrome';
-            case agent.indexOf('firefox') > -1:
-                return 'firefox';
-            case agent.indexOf('safari') > -1:
-                return 'safari';
+    getInsertedInstanceId() : Observable<any> {
+        if(this.instance){
+            return this.instance;
         }
+        const requestOptions = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            body: JSON.stringify(this.instanceEnvironment)
+        };
+        this.sessionSendAttempts++;
+        return from( fetch(this.logInstanceEnv,requestOptions)
+        .then(res => res.ok ? res.text().then(id=> {
+            this.instance = new BehaviorSubject<string>(id);
+            this.logServerMain =this.logServerMain.replace(':id',id);
+            this.sessionSendAttempts=0;
+            logTraceapi('log','Environement instance sent successfully');
+            return id;
+        }) : null)
+        .catch(err => {
+            logTraceapi('warn',err)
+            return null;
+        }))  
     }
-    catch (e) {
-        console.error(e);
-    }
-    return undefined;
 
+    instanceApiURL(host:string, path:string){
+       return  this.toURL(host,path);
+    }
+
+    sessionApiURL(host:string, path:string){
+       return  this.toURL(host,path);
+    }
+
+    toURL( host:string,  path:string ){
+        return host.endsWith(SLASH) || path.startsWith(SLASH) ? host + path : [host,path].join(SLASH);
+    }    
 }
-
-function detectOs() {
-    try {
-        let versionMatch, version;
-        const agent = window.navigator.userAgent.toLowerCase()
-        switch (true) {
-            case (/windows/.test(agent)):
-
-                versionMatch = /windows nt (\d+\.\d+)/.exec(agent);
-                version = versionMatch ? versionMatch[1] : 'Unknown';
-                return `Windows ${version}`;
-            case (/linux/.test(agent)):
-                return 'Linux';
-
-            case (/macintosh/.test(agent)):
-                versionMatch = /mac os x (\d+[._]\d+[._]\d+)/.exec(agent);
-                version = versionMatch ? versionMatch[1] : 'Unknown';
-                return `MacOs ${version}`
-        }
-    }
-    catch (e) {
-        console.error(e);
-    }
-    return undefined;
-}
-
-export function getOrCall(o?: string | (() => string)): string | undefined {
-    return typeof o === "function" ? o() : o;
-}
-
-
-
 
